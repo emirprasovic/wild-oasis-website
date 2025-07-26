@@ -198,11 +198,12 @@ export async function updateGuest(id, updatedFields) {
   return data;
 }
 
-export async function updateBooking(id, updatedFields) {
+export async function updateBooking(id, guestId, updatedFields) {
   const { data, error } = await supabase
     .from("bookings")
     .update(updatedFields)
     .eq("id", id)
+    .eq("guestId", guestId)
     .select()
     .single();
 
@@ -216,8 +217,12 @@ export async function updateBooking(id, updatedFields) {
 /////////////
 // DELETE
 
-export async function deleteBooking(id) {
-  const { data, error } = await supabase.from("bookings").delete().eq("id", id);
+export async function deleteBooking(id, guestId) {
+  const { data, error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("id", id)
+    .eq("guestId", guestId);
 
   if (error) {
     console.error(error);

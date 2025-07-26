@@ -1,26 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useFormStatus } from "react-dom";
+import { updateGuestAction } from "../_lib/actions";
 
-function UpdateProfileForm({ children }) {
-  const [count, setCount] = useState(0);
-  const countryFlag = "ba.jpg";
+function UpdateProfileForm({ children, guest }) {
+  const { fullName, email, nationality, nationalID, countryFlag } = guest;
 
   return (
-    <form className="flex flex-col gap-6 bg-primary-900 px-12 py-8 text-lg">
+    <form
+      action={updateGuestAction}
+      className="flex flex-col gap-6 bg-primary-900 px-12 py-8 text-lg"
+    >
       <div className="space-y-2">
         <label>Full name</label>
         <input
+          name="fullName"
           disabled
           className="w-full rounded-sm bg-primary-200 px-5 py-3 text-primary-800 shadow-sm disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-400"
+          defaultValue={fullName}
         />
       </div>
 
       <div className="space-y-2">
         <label>Email address</label>
         <input
+          name="email"
           disabled
           className="w-full rounded-sm bg-primary-200 px-5 py-3 text-primary-800 shadow-sm disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-400"
+          defaultValue={email}
         />
       </div>
 
@@ -42,15 +49,27 @@ function UpdateProfileForm({ children }) {
         <input
           name="nationalID"
           className="w-full rounded-sm bg-primary-200 px-5 py-3 text-primary-800 shadow-sm"
+          defaultValue={nationalID}
         />
       </div>
 
       <div className="flex items-center justify-end gap-6">
-        <button className="bg-accent-500 px-8 py-4 font-semibold text-primary-800 transition-all hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300">
-          Update profile
-        </button>
+        <Button />
       </div>
     </form>
+  );
+}
+
+function Button() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      disabled={pending}
+      className="bg-accent-500 px-8 py-4 font-semibold text-primary-800 transition-all hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300"
+    >
+      {pending ? "Updating..." : "Update profile"}
+    </button>
   );
 }
 
