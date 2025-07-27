@@ -1,10 +1,34 @@
 "use client";
 
+import { differenceInDays } from "date-fns";
 import { useReservation } from "../_contexts/ReservationContext";
+import { createReservationAction } from "../_lib/actions";
+import { useFormStatus } from "react-dom";
 
 function ReservationForm({ cabin, user }) {
-  const { range } = useReservation();
-  const { maxCapacity } = cabin;
+  const { range, resetRange } = useReservation();
+  const { maxCapacity, regularPrice, discount } = cabin;
+
+  const startDate = range.from;
+  const endDate = range.to;
+
+  const numNights = differenceInDays(endDate, startDate);
+  const cabinPrice = numNights * (regularPrice - discount);
+
+  const bookingData = {
+    startDate,
+    endDate,
+    numNights,
+    cabinPrice,
+    cabinId: cabin.id,
+  };
+
+  // const createReservationWithData = createReservationAction.bind(
+  //   null,
+  //   bookingData,
+  // );
+
+  // SIMPLER WAY FOR ABOVE IMPLEMENTATION
 
   return (
     <div className="scale-[1.01]">
@@ -27,7 +51,15 @@ function ReservationForm({ cabin, user }) {
         Range from {String(range?.from)} to {String(range?.to)}
       </p> */}
 
-      <form className="flex flex-col gap-5 bg-primary-900 px-16 py-10 text-lg">
+      <form
+        // action={createReservationWithData}
+        action={async (formData) => {
+          // await createReservationWithData(formData); A bit complicated using .bind()
+          await createReservationAction(bookingData, formData);
+          resetRange();
+        }}
+        className="flex flex-col gap-5 bg-primary-900 px-16 py-10 text-lg"
+      >
         <div className="space-y-2">
           <label htmlFor="numGuests">How many guests?</label>
           <select
@@ -58,16 +90,25 @@ function ReservationForm({ cabin, user }) {
             placeholder="Any pets, allergies, special requirements, etc.?"
           />
         </div>
-
         <div className="flex items-center justify-end gap-6">
           <p className="text-base text-primary-300">Start by selecting dates</p>
-
-          <button className="bg-accent-500 px-8 py-4 font-semibold text-primary-800 transition-all hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300">
-            Reserve now
-          </button>
+          <Button startDate={startDate} endDate={endDate} />
         </div>
       </form>
     </div>
+  );
+}
+
+function Button({ startDate, endDate }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      disabled={!startDate || !endDate}
+      className="bg-accent-500 px-8 py-4 font-semibold text-primary-800 transition-all hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300"
+    >
+      {pending ? "Reserving..." : "Reserve now"}
+    </button>
   );
 }
 

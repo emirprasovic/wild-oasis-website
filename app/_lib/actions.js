@@ -2,8 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { auth, signIn, signOut } from "./auth";
-import { deleteBooking, updateBooking, updateGuest } from "./data-service";
-import { redirect } from "next/dist/server/api-utils";
+import {
+  createBooking,
+  deleteBooking,
+  updateBooking,
+  updateGuest,
+} from "./data-service";
+import { redirect } from "next/navigation";
+// import { redirect } from "next/dist/server/api-utils";
 
 export async function signInAction() {
   await signIn("google", { redirectTo: "/account" });
@@ -57,4 +63,29 @@ export async function updateReservationAction(formData) {
   );
 
   revalidatePath("/account/reservations");
+}
+
+export async function createReservationAction(bookingData, formData) {
+  console.log(formData);
+  console.log(bookingData);
+  const session = await auth();
+
+  if (!session) throw new Error("You must be logged in");
+
+  const newBooking = {
+    guestId: session.user.guest.id,
+    ...bookingData,
+    numGuests: Number(formData.get("numGuests")),
+    observations: formData.get("observations").slice(0, 1000),
+    extrasPrice: 0,
+    totalPrice: bookingData.cabinPrice,
+    isPaid: false,
+    hasBreakfast: false,
+    status: "unconfirmed",
+  };
+
+  await createBooking(newBooking);
+
+  revalidatePath(`/cabins/${bookingData.cabinId}`);
+  redirect("/cabins/thank-you");
 }
